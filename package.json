@@ -1,0 +1,24 @@
+{
+  "name": "waffle-moderator-pro",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@grammyjs/runner": "^2.0.3",
+    "@mtcute/bun": "^0.30.0",
+    "grammy": "^1.43.0",
+    "i18next": "^26.3.1",
+    "i18next-fs-backend": "^2.6.6",
+    "mongoose": "^9.7.0"
+  }
+}

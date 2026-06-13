@@ -1,0 +1,14 @@
+[bot]
+token = "123456:replace-me"
+
+[database]
+name = "folt"
+password = "replace-me"
+url = "127.0.0.1"
+port = "27017"
+database = "shadycloudtest"
+
+[mtproto]
+api_id = 123456
+api_hash = "replace-me"
+session = "mtproto.session"

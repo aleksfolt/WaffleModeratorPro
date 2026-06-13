@@ -1,0 +1,66 @@
+{
+  "commands": {
+    "start": "Бот запущен."
+  },
+  "moderation": {
+    "user_fallback": "пользователь",
+    "reason_fallback": "не указана",
+    "buttons": {
+      "unban": "Разбанить",
+      "unmute": "Размутить"
+    },
+    "duration": {
+      "forever": "навсегда",
+      "seconds_one": "{{count}} секунда",
+      "seconds_few": "{{count}} секунды",
+      "seconds_many": "{{count}} секунд",
+      "seconds_other": "{{count}} секунды",
+      "minutes_one": "{{count}} минута",
+      "minutes_few": "{{count}} минуты",
+      "minutes_many": "{{count}} минут",
+      "minutes_other": "{{count}} минуты",
+      "hours_one": "{{count}} час",
+      "hours_few": "{{count}} часа",
+      "hours_many": "{{count}} часов",
+      "hours_other": "{{count}} часа",
+      "days_one": "{{count}} день",
+      "days_few": "{{count}} дня",
+      "days_many": "{{count}} дней",
+      "days_other": "{{count}} дня",
+      "weeks_one": "{{count}} неделя",
+      "weeks_few": "{{count}} недели",
+      "weeks_many": "{{count}} недель",
+      "weeks_other": "{{count}} недели"
+    },
+    "mute": {
+      "success": "<b>Пользователь ограничен</b>\n\n<b>Пользователь:</b> {{target}}\n<b>Срок:</b> {{duration}}\n<b>Причина:</b> {{reason}}"
+    },
+    "ban": {
+      "success": "<b>Пользователь заблокирован</b>\n\n<b>Пользователь:</b> {{target}}\n<b>Срок:</b> {{duration}}\n<b>Причина:</b> {{reason}}"
+    },
+    "unmute": {
+      "success": "<b>Ограничения сняты</b>\n\n<b>Пользователь:</b> {{target}}",
+      "callback_success": "Пользователь размучен."
+    },
+    "unban": {
+      "success": "<b>Блокировка снята</b>\n\n<b>Пользователь:</b> {{target}}",
+      "callback_success": "Пользователь разбанен."
+    },
+    "errors": {
+      "chat_required": "<b>Команда недоступна</b>\n\nЭта команда доступна только в чате.",
+      "generic": "<b>Ошибка</b>\n\n{{error}}",
+      "callback_generic": "Произошла ошибка: {{error}}",
+      "callback_user_required": "Не удалось определить пользователя.",
+      "no_rights": "<b>Недостаточно прав</b>\n\nДля этой команды нужны права администратора на ограничение участников.",
+      "no_rights_callback": "Недостаточно прав.",
+      "target_admin": "<b>Действие недоступно</b>\n\nЭтот пользователь является администратором чата.\nTelegram не позволяет применять модерационные ограничения к администраторам.",
+      "target_admin_callback": "Пользователь является администратором чата.",
+      "participant_id_invalid": "<b>Пользователь недоступен</b>\n\nTelegram не принял этот user_id для действия в этом чате.\n<blockquote>Для пользователя вне чата нужен @username или сохраненный peer из базы. Одного numeric user_id часто недостаточно.</blockquote>",
+      "user_required": "<b>Пользователь не найден</b>\n\nОтветьте на сообщение пользователя или укажите корректный user_id или @username.",
+      "mtproto_action_failed": "<b>Действие не выполнено</b>\n\nTelegram отклонил действие через MTProto.\n<blockquote>{{error}}</blockquote>",
+      "mtproto_not_configured": "<b>MTProto не настроен</b>\n\nЧтобы использовать username, добавьте в config.toml секцию [mtproto] с api_id и api_hash.",
+      "username_resolve_failed": "<b>Пользователь не найден</b>\n\nНе удалось получить пользователя по username через MTProto. Ответьте на сообщение пользователя или укажите user_id.",
+      "username_not_supported": "<b>Пользователь не найден</b>\n\nUsername нельзя надежно определить без локальной базы. Ответьте на сообщение пользователя или укажите user_id."
+    }
+  }
+}

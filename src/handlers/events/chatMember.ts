@@ -10,6 +10,14 @@ export const chatMemberComposer = new Composer<MyContext>();
 
 const JOINED_FROM = new Set(["left", "kicked"]);
 
+chatMemberComposer.on("message:new_chat_members", async (ctx) => {
+  const chatId = ctx.chat.id;
+  for (const user of ctx.message.new_chat_members) {
+    if (user.is_bot) continue;
+    await handleWelcome(ctx, chatId, user.id, user.first_name);
+  }
+});
+
 chatMemberComposer.on("chat_member", async (ctx) => {
   const { old_chat_member, new_chat_member } = ctx.chatMember;
   const oldStatus = old_chat_member.status;

@@ -21,7 +21,7 @@ import {
 import { scanVideoForNsfw } from "../../utils/videoScan.ts";
 import type { NsfwAction } from "../../database/models/chat.ts";
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB — Telegram Bot API getFile limit
 
 const ANON_ADMIN_BOT_ID = 1087968824;
 

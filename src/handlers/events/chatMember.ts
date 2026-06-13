@@ -51,7 +51,9 @@ async function handleWelcome(
   userId: number,
   firstName: string,
 ): Promise<void> {
+  console.log(`[welcome] chatId=${chatId} userId=${userId}`);
   const chat = await chatService.get(chatId).catch(() => null);
+  console.log(`[welcome] chat=${chat ? "found" : "null"} enabled=${chat?.welcome?.enabled}`);
   if (!chat?.welcome.enabled) return;
 
   if (chat.welcome.onlyFirst) {

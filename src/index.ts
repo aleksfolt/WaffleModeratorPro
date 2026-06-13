@@ -27,22 +27,7 @@ async function main() {
   const bot = new Bot<MyContext>(config.bot.token);
 
   await initGlobalI18n();
-
-  bot.use((ctx, next) => {
-    const type = Object.keys(ctx.update).filter((k) => k !== "update_id").join(", ");
-    const chat = ctx.chat ? `${ctx.chat.type}:${ctx.chat.id}` : "no-chat";
-    console.log(`[update] ${type} | ${chat}`);
-    return next();
-  });
-
   bot.use(i18nMiddleware);
-
-  bot.use(async (ctx, next) => {
-    console.log("[before userMiddleware]");
-    await next();
-    console.log("[after userMiddleware]");
-  });
-
   bot.use(userMiddleware);
 
   bot.command("start", async (ctx) => {

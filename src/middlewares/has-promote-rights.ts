@@ -11,9 +11,14 @@ export const hasPromoteRights: MiddlewareFn<MyContext> = async (ctx, next) => {
   const isCommand = ctx.message?.entities?.some((e) => e.type === "bot_command");
   const isCallback = !!ctx.callbackQuery;
 
+  console.log(`[hasPromoteRights] isCommand=${isCommand} isCallback=${isCallback} from=${ctx.from?.id}`);
+
   if (!isCommand && !isCallback) return next();
 
-  if (await canPromoteMembers(ctx)) {
+  const can = await canPromoteMembers(ctx);
+  console.log(`[hasPromoteRights] canPromoteMembers=${can}`);
+
+  if (can) {
     return next();
   }
 

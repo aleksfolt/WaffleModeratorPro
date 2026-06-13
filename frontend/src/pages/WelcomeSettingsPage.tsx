@@ -18,7 +18,7 @@ export function WelcomeSettingsPage({ chatId, title, onNavigate }: Props) {
 
   useEffect(() => {
     getWelcomeSettings(chatId)
-      .then((s) => setSettings({ buttons: [], ...s }))
+      .then((s) => setSettings({ ...s, buttons: s.buttons ?? [] }))
       .catch((e: Error) => setError(e.message));
   }, [chatId]);
 

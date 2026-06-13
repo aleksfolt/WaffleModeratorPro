@@ -32,7 +32,7 @@ export function RulesSettingsPage({ chatId, title, onNavigate }: Props) {
 
   useEffect(() => {
     getRulesSettings(chatId)
-      .then((s) => setSettings({ buttons: [], ...s }))
+      .then((s) => setSettings({ ...s, buttons: s.buttons ?? [] }))
       .catch((e: Error) => setError(e.message));
   }, [chatId]);
 

@@ -15,7 +15,7 @@ import type { Page } from "./router.ts";
 
 function telegramReady() {
   try {
-    const tg = (window as Record<string, unknown>).Telegram as
+    const tg = (window as unknown as Record<string, unknown>).Telegram as
       | { WebApp?: { ready?: () => void; expand?: () => void } }
       | undefined;
     tg?.WebApp?.ready?.();

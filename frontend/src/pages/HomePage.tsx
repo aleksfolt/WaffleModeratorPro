@@ -2,7 +2,7 @@ import type { Page } from "../router.ts";
 
 function getTelegramUser(): { first_name: string } | null {
   try {
-    const tg = (window as Record<string, unknown>).Telegram as
+    const tg = (window as unknown as Record<string, unknown>).Telegram as
       | { WebApp?: { initDataUnsafe?: { user?: { first_name: string } } } }
       | undefined;
     return tg?.WebApp?.initDataUnsafe?.user ?? null;

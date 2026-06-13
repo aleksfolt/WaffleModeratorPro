@@ -2,7 +2,7 @@ import type { AnonAdminSettings, AntiFloodSettings, CallAdminSettings, ChatListI
 
 function initData(): string {
   try {
-    return (window as Record<string, unknown> & { Telegram?: { WebApp?: { initData?: string } } })
+    return (window as unknown as Record<string, unknown> & { Telegram?: { WebApp?: { initData?: string } } })
       .Telegram?.WebApp?.initData ?? "";
   } catch {
     return "";

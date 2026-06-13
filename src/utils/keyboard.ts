@@ -7,7 +7,11 @@ export function buildKeyboard(rows: IWelcomeButton[][]): InlineKeyboard | undefi
   const kb = new InlineKeyboard();
   for (const row of rows) {
     for (const btn of row) {
-      kb.url(btn.text, btn.url);
+      kb.add({
+        text: btn.text,
+        url: btn.url,
+        ...(btn.style ? { style: btn.style } : {}),
+      });
     }
     kb.row();
   }

@@ -33,7 +33,7 @@ config.toml
 *.tsbuildinfo
 
 # ML models (large binaries, downloaded automatically on first run)
-models/
+/models/
 
 # IntelliJ based IDEs
 .idea

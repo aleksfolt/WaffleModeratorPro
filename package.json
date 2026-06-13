@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "webapp": "bun run src/webapp/index.ts",
+    "webapp:prod": "NODE_ENV=production bun run src/webapp/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

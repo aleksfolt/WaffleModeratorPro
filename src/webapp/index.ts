@@ -88,10 +88,12 @@ async function main() {
     origin: process.env.NODE_ENV === "production" ? false : true,
   });
 
-  await app.register(fastifyStatic, {
-    root: frontendDist,
-    prefix: "/",
-  });
+  if (process.env.NODE_ENV !== "production") {
+    await app.register(fastifyStatic, {
+      root: frontendDist,
+      prefix: "/",
+    });
+  }
 
   app.get("/health", async () => ({ ok: true }));
 
@@ -315,9 +317,11 @@ async function main() {
     return { ok: true };
   });
 
-  app.setNotFoundHandler(async (_request, reply) => {
-    return reply.sendFile("index.html");
-  });
+  if (process.env.NODE_ENV !== "production") {
+    app.setNotFoundHandler(async (_request, reply) => {
+      return reply.sendFile("index.html");
+    });
+  }
 
   const port = parseInt(process.env.WEBAPP_PORT ?? "3002");
 

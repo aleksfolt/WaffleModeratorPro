@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from "grammy";
 
 import { chatMemberService } from "../../database/services/chatMemberService.ts";
-import { hasPromoteRights } from "../../filters/index.ts";
+import { hasPromoteRights } from "../../middlewares/index.ts";
 import type { MyContext } from "../../i18n.ts";
 import {
   isMtprotoConfigured,
@@ -23,22 +23,20 @@ import {
   replyModerationError,
   restrictedChatPermissions,
   type TargetUser,
-  type TextMessageContext,
   userLink,
 } from "../../utils/moderation.ts";
 
 export const muteComposer = new Composer<MyContext>();
+muteComposer.use(hasPromoteRights);
 
-const muteCommand = muteComposer.on("message:text");
-
-muteCommand.command("mute", hasPromoteRights, async (ctx) => {
+muteComposer.command("mute", async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"));
       return;
     }
 
-    const parsed = parseCommand(ctx.message.text);
+    const parsed = parseCommand(ctx.message!.text!);
     const args = parsed?.args ?? [];
     const targetResult = await getTargetUser(ctx, args);
 
@@ -85,7 +83,7 @@ muteCommand.command("mute", hasPromoteRights, async (ctx) => {
 });
 
 async function muteTarget(
-  ctx: TextMessageContext,
+  ctx: MyContext,
   chatId: number,
   target: TargetUser,
   untilDate?: number,
@@ -106,14 +104,14 @@ async function muteTarget(
   return { ok: true };
 }
 
-muteCommand.command("unmute", hasPromoteRights, async (ctx) => {
+muteComposer.command("unmute", async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"));
       return;
     }
 
-    const parsed = parseCommand(ctx.message.text);
+    const parsed = parseCommand(ctx.message!.text!);
     const args = parsed?.args ?? [];
     const targetResult = await getTargetUser(ctx, args);
 
@@ -139,7 +137,7 @@ muteCommand.command("unmute", hasPromoteRights, async (ctx) => {
   }
 });
 
-muteComposer.callbackQuery(/^moderation:unmute:(\d+)$/, hasPromoteRights, async (ctx) => {
+muteComposer.callbackQuery(/^moderation:unmute:(\d+)$/, async (ctx) => {
   try {
     const chatId = ctx.chatId;
     const userId = getRegexNumberGroup(ctx.match);
@@ -158,22 +156,14 @@ muteComposer.callbackQuery(/^moderation:unmute:(\d+)$/, hasPromoteRights, async 
       .upsert({ chatId, userId, mutedUntil: null })
       .catch((error) => console.error("Failed to clear mutedUntil:", error));
 
-    await ctx.answerCallbackQuery(ctx.t("moderation.unmute.callback_success"));
+    await ctx.answerCallbackQuery();
 
-    await ctx.editMessageText(
-      ctx.t("moderation.unmute.success", {
-        target: userLink(ctx, {
-          id: userId,
-          firstName: ctx.t("moderation.user_fallback"),
-        }),
-      }),
-      { parse_mode: "HTML" },
-    );
-
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-      // The message can be inaccessible or already edited. The unmute itself succeeded.
+    const msg = ctx.callbackQuery.message;
+    if (msg && "text" in msg) {
+      const label = ctx.t("moderation.unmute.callback_success");
+      await ctx.editMessageText(msg.text + "\n\n" + label, {
+        entities: msg.entities,
+      });
     }
   } catch (error) {
     const key = getModerationErrorKey(error);

@@ -1,7 +1,7 @@
 import { Composer, InlineKeyboard } from "grammy";
 
 import { chatMemberService } from "../../database/services/chatMemberService.ts";
-import { hasPromoteRights } from "../../filters/index.ts";
+import { hasPromoteRights } from "../../middlewares/index.ts";
 import type { MyContext } from "../../i18n.ts";
 import {
   banChatMemberWithMtproto,
@@ -21,22 +21,20 @@ import {
   replyMtprotoModerationError,
   replyModerationError,
   type TargetUser,
-  type TextMessageContext,
   userLink,
 } from "../../utils/moderation.ts";
 
 export const banComposer = new Composer<MyContext>();
+banComposer.use(hasPromoteRights);
 
-const banCommand = banComposer.on("message:text");
-
-banCommand.command("ban", hasPromoteRights, async (ctx) => {
+banComposer.command("ban", async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
       return;
     }
 
-    const parsed = parseCommand(ctx.message.text);
+    const parsed = parseCommand(ctx.message!.text!);
     const args = parsed?.args ?? [];
     const targetResult = await getTargetUser(ctx, args);
 
@@ -83,7 +81,7 @@ banCommand.command("ban", hasPromoteRights, async (ctx) => {
 });
 
 async function banTarget(
-  ctx: TextMessageContext,
+  ctx: MyContext,
   chatId: number,
   target: TargetUser,
   untilDate?: number,
@@ -103,14 +101,14 @@ async function banTarget(
   return { ok: true };
 }
 
-banCommand.command("unban", hasPromoteRights, async (ctx) => {
+banComposer.command("unban", async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
       return;
     }
 
-    const parsed = parseCommand(ctx.message.text);
+    const parsed = parseCommand(ctx.message!.text!);
     const args = parsed?.args ?? [];
     const targetResult = await getTargetUser(ctx, args);
 
@@ -138,7 +136,7 @@ banCommand.command("unban", hasPromoteRights, async (ctx) => {
   }
 });
 
-banComposer.callbackQuery(/^moderation:unban:(\d+)$/, hasPromoteRights, async (ctx) => {
+banComposer.callbackQuery(/^moderation:unban:(\d+)$/, async (ctx) => {
   try {
     const chatId = ctx.chatId;
     const userId = getRegexNumberGroup(ctx.match);
@@ -159,22 +157,14 @@ banComposer.callbackQuery(/^moderation:unban:(\d+)$/, hasPromoteRights, async (c
       .upsert({ chatId, userId, bannedUntil: null })
       .catch((error) => console.error("Failed to clear bannedUntil:", error));
 
-    await ctx.answerCallbackQuery(ctx.t("moderation.unban.callback_success"));
+    await ctx.answerCallbackQuery();
 
-    await ctx.editMessageText(
-      ctx.t("moderation.unban.success", {
-        target: userLink(ctx, {
-          id: userId,
-          firstName: ctx.t("moderation.user_fallback"),
-        }),
-      }),
-      { parse_mode: "HTML" },
-    );
-
-    try {
-      await ctx.editMessageReplyMarkup();
-    } catch {
-      // The message can be inaccessible or already edited. The unban itself succeeded.
+    const msg = ctx.callbackQuery.message;
+    if (msg && "text" in msg) {
+      const label = ctx.t("moderation.unban.callback_success");
+      await ctx.editMessageText(msg.text + "\n\n" + label, {
+        entities: msg.entities,
+      });
     }
   } catch (error) {
     const key = getModerationErrorKey(error);

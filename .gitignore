@@ -32,6 +32,9 @@ config.toml
 .cache
 *.tsbuildinfo
 
+# ML models (large binaries, downloaded automatically on first run)
+models/
+
 # IntelliJ based IDEs
 .idea
 

@@ -96,6 +96,106 @@ export class ChatMemberService {
     return Boolean(chatMember);
   }
 
+  async migrateChat(oldChatId: number, newChatId: number): Promise<void> {
+    const BATCH_SIZE = 500;
+    const cursor = ChatMember.find({ chatId: oldChatId }).lean().cursor();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let ops: any[] = [];
+
+    for await (const member of cursor) {
+      ops.push(
+        {
+          insertOne: {
+            document: {
+              _id: buildChatMemberId(newChatId, member.userId),
+              chatId: newChatId,
+              userId: member.userId,
+              warnsCount: member.warnsCount,
+              warnings: member.warnings,
+              mutedUntil: member.mutedUntil ?? null,
+              bannedUntil: member.bannedUntil ?? null,
+              lastSeenAt: member.lastSeenAt,
+              messagesCount: member.messagesCount,
+            },
+          },
+        },
+        {
+          deleteOne: {
+            filter: { _id: member._id },
+          },
+        },
+      );
+
+      if (ops.length >= BATCH_SIZE * 2) {
+        await ChatMember.bulkWrite(ops, { ordered: false });
+        ops = [];
+      }
+    }
+
+    if (ops.length > 0) {
+      await ChatMember.bulkWrite(ops, { ordered: false });
+    }
+  }
+
+  async addWarning(
+    chatId: number,
+    userId: number,
+    data: ChatMemberWarningData,
+  ): Promise<IChatMember> {
+    const expiresAt = data.expiresAt ?? null;
+    return ChatMember.findByIdAndUpdate(
+      buildChatMemberId(chatId, userId),
+      {
+        $push: {
+          warnings: {
+            moderatorId: data.moderatorId,
+            reason: data.reason ?? "",
+            active: true,
+            createdAt: new Date(),
+            expiresAt,
+          },
+        },
+        $inc: { warnsCount: 1 },
+        $setOnInsert: {
+          _id: buildChatMemberId(chatId, userId),
+          chatId,
+          userId,
+        },
+      },
+      {
+        returnDocument: "after",
+        upsert: true,
+        runValidators: true,
+        setDefaultsOnInsert: true,
+      },
+    ).orFail();
+  }
+
+  async resetWarnings(chatId: number, userId: number): Promise<void> {
+    await ChatMember.updateOne(
+      { _id: buildChatMemberId(chatId, userId) },
+      { $set: { warnsCount: 0, "warnings.$[elem].active": false } },
+      { arrayFilters: [{ "elem.active": true }] },
+    );
+  }
+
+  async removeLastWarning(chatId: number, userId: number): Promise<IChatMember | null> {
+    const member = await ChatMember.findById(buildChatMemberId(chatId, userId));
+    if (!member) return null;
+
+    const lastActiveIdx = [...member.warnings]
+      .map((w, i) => ({ w, i }))
+      .reverse()
+      .find(({ w }) => w.active)?.i;
+
+    if (lastActiveIdx === undefined) return member;
+
+    member.warnings[lastActiveIdx]!.active = false;
+    member.warnsCount = Math.max(0, member.warnsCount - 1);
+    await member.save();
+    return member;
+  }
+
   async touchMessage(chatId: number, userId: number): Promise<IChatMember> {
     return ChatMember.findByIdAndUpdate(
       buildChatMemberId(chatId, userId),

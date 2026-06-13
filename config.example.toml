@@ -1,5 +1,6 @@
 [bot]
 token = "123456:replace-me"
+# webapp_url = "https://your-ngrok-url.ngrok-free.app"
 
 [database]
 name = "folt"

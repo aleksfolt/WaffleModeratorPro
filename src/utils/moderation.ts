@@ -1,10 +1,8 @@
-import { GrammyError, type Filter } from "grammy";
+import { GrammyError } from "grammy";
 import type { ChatPermissions } from "grammy/types";
 
 import type { MyContext } from "../i18n.ts";
 import { getUsername, type MtprotoModerationResult } from "../mtproto.ts";
-
-export type TextMessageContext = Filter<MyContext, "message:text">;
 
 export type ParsedCommand = {
   name: string;
@@ -85,8 +83,8 @@ export function parseCommand(text: string): ParsedCommand | null {
   };
 }
 
-export function isCommand(ctx: TextMessageContext, name: string): boolean {
-  const parsed = parseCommand(ctx.message.text);
+export function isCommand(ctx: MyContext, name: string): boolean {
+  const parsed = parseCommand(ctx.message!.text!);
 
   if (!parsed || parsed.name !== name) {
     return false;
@@ -95,8 +93,8 @@ export function isCommand(ctx: TextMessageContext, name: string): boolean {
   return !parsed.botUsername || parsed.botUsername === ctx.me.username.toLowerCase();
 }
 
-export async function getTargetUser(ctx: TextMessageContext, args: string[]): Promise<TargetResult> {
-  const repliedUser = ctx.message.reply_to_message?.from;
+export async function getTargetUser(ctx: MyContext, args: string[]): Promise<TargetResult> {
+  const repliedUser = ctx.message!.reply_to_message?.from;
 
   if (repliedUser) {
     return {
@@ -210,7 +208,7 @@ export function parseDuration(value: string): ParsedDuration | null {
 }
 
 export function getReason(
-  ctx: TextMessageContext,
+  ctx: MyContext,
   args: string[],
   targetArgIndex?: number,
   durationArgIndex?: number,
@@ -229,6 +227,13 @@ export function formatDuration(ctx: MyContext, duration: ParsedDuration | null):
   }
 
   return ctx.t(`moderation.duration.${duration.unit}`, { count: duration.value });
+}
+
+export function secondsToHumanDuration(seconds: number): ParsedDuration {
+  if (seconds < 60)   return { value: seconds,                    unit: "seconds", seconds };
+  if (seconds < 3600) return { value: Math.round(seconds / 60),   unit: "minutes", seconds };
+  if (seconds < 86400) return { value: Math.round(seconds / 3600), unit: "hours",   seconds };
+  return               { value: Math.round(seconds / 86400),      unit: "days",    seconds };
 }
 
 export function getUntilDate(duration: ParsedDuration | null): number | undefined {

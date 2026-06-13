@@ -1,6 +1,7 @@
 export interface Config {
   bot: {
     token: string;
+    webappUrl?: string;
   };
   database: {
     name: string;
@@ -56,12 +57,18 @@ export async function loadConfig(path: string | URL = defaultConfigPath): Promis
     throw new Error('Config value "bot.token" must be a non-empty string');
   }
 
+  const webappUrl = parsed.bot.webapp_url;
+  if (webappUrl !== undefined && (typeof webappUrl !== "string" || webappUrl.trim().length === 0)) {
+    throw new Error('Config value "bot.webapp_url" must be a non-empty string');
+  }
+
   const database = parseDatabaseConfig(parsed.database);
   const mtproto = parseMtprotoConfig(parsed.mtproto);
 
   return {
     bot: {
       token: token.trim(),
+      ...(typeof webappUrl === "string" ? { webappUrl: webappUrl.trim() } : {}),
     },
     database,
     ...(mtproto ? { mtproto } : {}),

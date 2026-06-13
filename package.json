@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun run src/index.ts",
+    "webapp": "bun run src/webapp/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
@@ -14,11 +15,21 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/static": "^9.1.3",
     "@grammyjs/runner": "^2.0.3",
     "@mtcute/bun": "^0.30.0",
+    "@noble/curves": "^2.2.0",
+    "@noble/ed25519": "^3.1.0",
+    "fastify": "^5.8.5",
     "grammy": "^1.43.0",
     "i18next": "^26.3.1",
     "i18next-fs-backend": "^2.6.6",
-    "mongoose": "^9.7.0"
-  }
+    "mongoose": "^9.7.0",
+    "onnxruntime-node": "^1.26.0",
+    "sharp": "^0.35.1"
+  },
+  "trustedDependencies": [
+    "onnxruntime-node"
+  ]
 }

@@ -31,8 +31,11 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
   async function downloadFile(fileId: string, outPath: string): Promise<boolean> {
     const info = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
     const json = await info.json() as { ok: boolean; result?: { file_path?: string } };
+    console.log(`[NSFW] getFile response:`, JSON.stringify(json));
     if (!json.ok || !json.result?.file_path) return false;
-    const res = await fetch(`https://api.telegram.org/file/bot${botToken}/${json.result.file_path}`);
+    const fileUrl = `https://api.telegram.org/file/bot${botToken}/${json.result.file_path}`;
+    const res = await fetch(fileUrl);
+    console.log(`[NSFW] file fetch status=${res.status} url=${json.result.file_path}`);
     if (!res.ok) return false;
     await Bun.write(outPath, await res.arrayBuffer());
     return true;
@@ -86,9 +89,13 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
       const chat = await chatService.get(chatId).catch(() => null);
       if (!chat?.nsfwFilter?.enabled || chat.allAdmins?.includes(userId)) return;
       const { percent, blockCovered } = chat.nsfwFilter;
+      console.log(`[NSFW] video download start file_id=${media.file_id} size=${media.file_size ?? "?"}`);
       const ok = await downloadFile(media.file_id, tmpPath);
+      console.log(`[NSFW] video download ok=${ok}`);
       if (!ok) return;
+      console.log(`[NSFW] video scan start`);
       const hit = await scanVideoForNsfw(tmpPath, percent / 100, blockCovered);
+      console.log(`[NSFW] video scan done hit=${hit?.className ?? "none"}`);
       if (!hit) return;
       await handleNsfwHit(ctx, chatId, userId, ctx.message.message_id, chat, hit);
     } catch (error) {

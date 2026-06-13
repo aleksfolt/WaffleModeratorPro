@@ -36,6 +36,13 @@ async function main() {
   });
 
   bot.use(i18nMiddleware);
+
+  bot.use(async (ctx, next) => {
+    console.log("[before userMiddleware]");
+    await next();
+    console.log("[after userMiddleware]");
+  });
+
   bot.use(userMiddleware);
 
   bot.command("start", async (ctx) => {

@@ -29,14 +29,14 @@ const punishedSet = new Set<string>();
 
 antiFloodComposer.on("message", async (ctx, next) => {
   const chatType = ctx.chat?.type;
-  if (!chatType || chatType === "private") return;
+  if (!chatType || chatType === "private") return next();
 
   const userId = ctx.from?.id;
   const chatId = ctx.chatId;
-  if (!userId || !chatId) return;
+  if (!userId || !chatId) return next();
 
   // пропускаем ботов и анонимных админов
-  if (ctx.from.is_bot || userId === ANON_ADMIN_BOT_ID) return;
+  if (ctx.from.is_bot || userId === ANON_ADMIN_BOT_ID) return next();
 
   const chat = await chatService.get(chatId).catch(() => null);
   if (!chat?.antiFlood?.enabled) return;

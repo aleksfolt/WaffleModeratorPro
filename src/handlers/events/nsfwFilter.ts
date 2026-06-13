@@ -38,6 +38,7 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
 
     try {
       const chat = await chatService.get(chatId).catch(() => null);
+      if (chat?.allAdmins?.includes(userId)) return;
       if (!chat?.nsfwFilter?.enabled) return;
 
       const { percent, blockCovered, action, durationAction, deleteMessage } = chat.nsfwFilter;

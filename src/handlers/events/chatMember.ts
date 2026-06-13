@@ -51,14 +51,11 @@ async function handleWelcome(
   userId: number,
   firstName: string,
 ): Promise<void> {
-  console.log(`[welcome] chatId=${chatId} userId=${userId}`);
   const chat = await chatService.get(chatId).catch(() => null);
-  console.log(`[welcome] chat=${chat ? "found" : "null"} enabled=${chat?.welcome?.enabled}`);
   if (!chat?.welcome.enabled) return;
 
   if (chat.welcome.onlyFirst) {
     const alreadySeen = await chatMemberService.exists(chatId, userId);
-    console.log(`[welcome] onlyFirst=${chat.welcome.onlyFirst} alreadySeen=${alreadySeen}`);
     if (alreadySeen) return;
   }
 
@@ -72,9 +69,8 @@ async function handleWelcome(
 
   const keyboard = buildKeyboard(chat.welcome.buttons);
 
-  console.log(`[welcome] sending message, text length=${text.length}`);
   await ctx.reply(text, {
     parse_mode: "HTML",
     ...(keyboard ? { reply_markup: keyboard } : {}),
-  }).catch((e) => console.error("[welcome] reply failed:", e));
+  }).catch(() => {});
 }

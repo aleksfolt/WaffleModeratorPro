@@ -56,13 +56,12 @@ async function main() {
   });
 
   await bot.init();
+  await bot.api.deleteWebhook({ drop_pending_updates: false });
   console.log(`Bot @${bot.botInfo.username} started`);
 
   const runner = run(bot, {
-    runner: {
-      fetch: {
-        allowed_updates: ["message", "callback_query", "my_chat_member", "chat_member"],
-      },
+    fetch: {
+      allowed_updates: ["message", "callback_query", "my_chat_member", "chat_member"],
     },
   });
 

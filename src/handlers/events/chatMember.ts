@@ -58,10 +58,10 @@ async function handleWelcome(
 
   if (chat.welcome.onlyFirst) {
     const alreadySeen = await chatMemberService.exists(chatId, userId);
+    console.log(`[welcome] onlyFirst=${chat.welcome.onlyFirst} alreadySeen=${alreadySeen}`);
     if (alreadySeen) return;
   }
 
-  // upsert чтобы зафиксировать пользователя в базе
   chatMemberService
     .upsert({ chatId, userId })
     .catch((error) => console.error("Failed to upsert chat member on welcome:", error));
@@ -72,8 +72,9 @@ async function handleWelcome(
 
   const keyboard = buildKeyboard(chat.welcome.buttons);
 
+  console.log(`[welcome] sending message, text length=${text.length}`);
   await ctx.reply(text, {
     parse_mode: "HTML",
     ...(keyboard ? { reply_markup: keyboard } : {}),
-  }).catch(() => {});
+  }).catch((e) => console.error("[welcome] reply failed:", e));
 }

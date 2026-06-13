@@ -39,7 +39,7 @@ antiFloodComposer.on("message", async (ctx, next) => {
   if (ctx.from.is_bot || userId === ANON_ADMIN_BOT_ID) return next();
 
   const chat = await chatService.get(chatId).catch(() => null);
-  if (!chat?.antiFlood?.enabled) return;
+  if (!chat?.antiFlood?.enabled) return next();
 
   const { messages: limit, time, action, durationAction, deleteMessages } = chat.antiFlood;
   const key = `${chatId}:${userId}`;

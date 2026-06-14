@@ -31,13 +31,14 @@ async function extractFrames(
   startSec: number,
   durationSec: number,
 ): Promise<string[]> {
+  const effectiveFps = durationSec < 1 / FPS ? Math.ceil(2 / durationSec) : FPS;
   const proc = Bun.spawn(
     [
       "ffmpeg",
       "-ss", String(startSec),
       "-i", filePath,
       "-t", String(durationSec),
-      "-vf", `fps=${FPS},scale=640:360:force_original_aspect_ratio=decrease`,
+      "-vf", `fps=${effectiveFps},scale=640:360:force_original_aspect_ratio=decrease`,
       "-q:v", "3",
       join(outDir, "frame_%06d.jpg"),
       "-y",

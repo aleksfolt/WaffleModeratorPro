@@ -91,13 +91,16 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
       if (!chat?.nsfwFilter?.enabled || chat.allAdmins?.includes(userId)) return;
       const { percent, blockCovered } = chat.nsfwFilter;
       const ok = await downloadFile(sticker.file_id, tmpPath);
+      console.log(`[NSFW] sticker download ok=${ok} isVideo=${isVideo} isAnimated=${sticker.is_animated}`);
       if (!ok) return;
       if (isVideo) {
         const hit = await scanVideoForNsfw(tmpPath, percent / 100, blockCovered);
+        console.log(`[NSFW] sticker video scan done hit=${hit?.className ?? "none"}`);
         if (!hit) return;
         await handleNsfwHit(ctx, chatId, userId, ctx.message.message_id, chat, hit);
       } else {
         const detections = await detectNudity(tmpPath, percent / 100);
+        console.log(`[NSFW] sticker image detections=${JSON.stringify(detections)}`);
         const hit = detections.find(
           (d) => NSFW_CLASSES.has(d.className) || (blockCovered && COVERED_NSFW_CLASSES.has(d.className)),
         );

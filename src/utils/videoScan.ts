@@ -55,6 +55,7 @@ export async function scanVideoForNsfw(
   blockCovered: boolean,
 ): Promise<Detection | null> {
   const duration = await getVideoDuration(filePath);
+  console.log(`[NSFW] videoScan duration=${duration} file=${filePath}`);
   if (!duration) return null;
 
   const isShort = duration <= FULL_SCAN_THRESHOLD_SEC;

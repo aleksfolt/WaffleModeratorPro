@@ -76,6 +76,41 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
     }
   });
 
+  composer.on("message:sticker", async (ctx, next) => {
+    void next();
+    if (!isNsfwGuard(ctx)) return;
+    const sticker = ctx.message.sticker;
+    if (sticker.is_animated) return; // TGS/Lottie — cannot scan
+    const chatId = ctx.chatId!;
+    const userId = ctx.from!.id;
+    if (sticker.file_size && sticker.file_size > MAX_FILE_SIZE) return;
+    const isVideo = sticker.is_video;
+    const tmpPath = `/tmp/nsfw_${sticker.file_id}.${isVideo ? "webm" : "webp"}`;
+    try {
+      const chat = await chatService.get(chatId).catch(() => null);
+      if (!chat?.nsfwFilter?.enabled || chat.allAdmins?.includes(userId)) return;
+      const { percent, blockCovered } = chat.nsfwFilter;
+      const ok = await downloadFile(sticker.file_id, tmpPath);
+      if (!ok) return;
+      if (isVideo) {
+        const hit = await scanVideoForNsfw(tmpPath, percent / 100, blockCovered);
+        if (!hit) return;
+        await handleNsfwHit(ctx, chatId, userId, ctx.message.message_id, chat, hit);
+      } else {
+        const detections = await detectNudity(tmpPath, percent / 100);
+        const hit = detections.find(
+          (d) => NSFW_CLASSES.has(d.className) || (blockCovered && COVERED_NSFW_CLASSES.has(d.className)),
+        );
+        if (!hit) return;
+        await handleNsfwHit(ctx, chatId, userId, ctx.message.message_id, chat, hit);
+      }
+    } catch (error) {
+      console.error("[NSFW] sticker error:", error);
+    } finally {
+      unlink(tmpPath).catch(() => {});
+    }
+  });
+
   composer.on(["message:video", "message:animation", "message:video_note"], async (ctx, next) => {
     void next();
     if (!isNsfwGuard(ctx)) return;

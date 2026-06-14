@@ -76,14 +76,18 @@ export function createNsfwFilterComposer(botToken: string): Composer<MyContext> 
     }
   });
 
-  composer.on(["message:video", "message:animation"], async (ctx, next) => {
+  composer.on(["message:video", "message:animation", "message:video_note"], async (ctx, next) => {
     void next();
     if (!isNsfwGuard(ctx)) return;
     const chatId = ctx.chatId!;
     const userId = ctx.from!.id;
-    const media = ("video" in ctx.message ? ctx.message.video : ctx.message.animation)!;
+    const media = (
+      "video" in ctx.message ? ctx.message.video :
+      "animation" in ctx.message ? ctx.message.animation :
+      ctx.message.video_note
+    )!;
     if (media?.file_size && media.file_size > MAX_FILE_SIZE) return;
-    const ext = "video" in ctx.message ? "mp4" : "gif.mp4";
+    const ext = "video_note" in ctx.message ? "mp4" : "video" in ctx.message ? "mp4" : "gif.mp4";
     const tmpPath = `/tmp/nsfw_${media?.file_id ?? "unknown"}.${ext}`;
     try {
       const chat = await chatService.get(chatId).catch(() => null);

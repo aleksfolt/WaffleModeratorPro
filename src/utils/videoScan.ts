@@ -29,22 +29,19 @@ async function extractFrames(
   filePath: string,
   outDir: string,
   startSec: number,
-  durationSec: number,
+  durationSec: number | null,
 ): Promise<string[]> {
-  const effectiveFps = durationSec < 1 / FPS ? Math.ceil(2 / durationSec) : FPS;
-  const proc = Bun.spawn(
-    [
-      "ffmpeg",
-      "-ss", String(startSec),
-      "-i", filePath,
-      "-t", String(durationSec),
-      "-vf", `fps=${effectiveFps},scale=640:360:force_original_aspect_ratio=decrease`,
-      "-q:v", "3",
-      join(outDir, "frame_%06d.jpg"),
-      "-y",
-    ],
-    { stdout: "pipe", stderr: "pipe" },
-  );
+  const args = [
+    "ffmpeg",
+    "-ss", String(startSec),
+    "-i", filePath,
+    ...(durationSec !== null ? ["-t", String(durationSec)] : []),
+    "-vf", `fps=${FPS},scale=640:360:force_original_aspect_ratio=decrease`,
+    "-q:v", "3",
+    join(outDir, "frame_%06d.jpg"),
+    "-y",
+  ];
+  const proc = Bun.spawn(args, { stdout: "pipe", stderr: "pipe" });
   await proc.exited;
   const files = await readdir(outDir).catch(() => [] as string[]);
   return files.filter((f) => f.endsWith(".jpg")).sort().map((f) => join(outDir, f));
@@ -57,23 +54,29 @@ export async function scanVideoForNsfw(
 ): Promise<Detection | null> {
   const duration = await getVideoDuration(filePath);
   console.log(`[NSFW] videoScan duration=${duration} file=${filePath}`);
-  if (!duration) return null;
 
-  const isShort = duration <= FULL_SCAN_THRESHOLD_SEC;
-  const offsets: number[] = isShort
-    ? [0]
-    : Array.from(
-        { length: Math.ceil(duration / SAMPLE_INTERVAL_SEC) },
+  // duration may be unreliable for short WEBM stickers — scan whole file if suspicious
+  const durationUnreliable = !duration || duration < 2;
+
+  const offsets: number[] = (!durationUnreliable && duration! > FULL_SCAN_THRESHOLD_SEC)
+    ? Array.from(
+        { length: Math.ceil(duration! / SAMPLE_INTERVAL_SEC) },
         (_, i) => i * SAMPLE_INTERVAL_SEC,
-      );
+      )
+    : [0];
 
   const tmpDir = `/tmp/nsfw_vid_${Date.now()}`;
   await mkdir(tmpDir, { recursive: true });
 
   try {
     for (const offset of offsets) {
-      const segDur = isShort ? duration : SAMPLE_DURATION_SEC;
+      const segDur = durationUnreliable
+        ? null // no -t: extract everything
+        : duration! > FULL_SCAN_THRESHOLD_SEC
+          ? SAMPLE_DURATION_SEC
+          : duration!;
       const frames = await extractFrames(filePath, tmpDir, offset, segDur);
+      console.log(`[NSFW] videoScan frames=${frames.length} offset=${offset} segDur=${segDur}`);
 
       for (const framePath of frames) {
         const detections = await detectNudity(framePath, confThreshold).catch(() => [] as Detection[]);

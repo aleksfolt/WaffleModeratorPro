@@ -25,9 +25,8 @@ import {
 } from "../../utils/moderation.ts";
 
 export const banComposer = new Composer<MyContext>();
-banComposer.use(hasPromoteRights);
 
-banComposer.command("ban", async (ctx) => {
+banComposer.command("ban", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
@@ -101,7 +100,7 @@ async function banTarget(
   return { ok: true };
 }
 
-banComposer.command("unban", async (ctx) => {
+banComposer.command("unban", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
@@ -136,7 +135,7 @@ banComposer.command("unban", async (ctx) => {
   }
 });
 
-banComposer.callbackQuery(/^moderation:unban:(\d+)$/, async (ctx) => {
+banComposer.callbackQuery(/^moderation:unban:(\d+)$/, hasPromoteRights, async (ctx) => {
   try {
     const chatId = ctx.chatId;
     const userId = getRegexNumberGroup(ctx.match);

@@ -18,9 +18,8 @@ import {
 } from "../../utils/moderation.ts";
 
 export const kickComposer = new Composer<MyContext>();
-kickComposer.use(hasPromoteRights);
 
-kickComposer.command("kick", async (ctx) => {
+kickComposer.command("kick", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });

@@ -27,9 +27,8 @@ import {
 } from "../../utils/moderation.ts";
 
 export const muteComposer = new Composer<MyContext>();
-muteComposer.use(hasPromoteRights);
 
-muteComposer.command("mute", async (ctx) => {
+muteComposer.command("mute", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"));
@@ -104,7 +103,7 @@ async function muteTarget(
   return { ok: true };
 }
 
-muteComposer.command("unmute", async (ctx) => {
+muteComposer.command("unmute", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"));
@@ -137,7 +136,7 @@ muteComposer.command("unmute", async (ctx) => {
   }
 });
 
-muteComposer.callbackQuery(/^moderation:unmute:(\d+)$/, async (ctx) => {
+muteComposer.callbackQuery(/^moderation:unmute:(\d+)$/, hasPromoteRights, async (ctx) => {
   try {
     const chatId = ctx.chatId;
     const userId = getRegexNumberGroup(ctx.match);

@@ -28,9 +28,8 @@ import {
 } from "../../utils/moderation.ts";
 
 export const warnComposer = new Composer<MyContext>();
-warnComposer.use(hasPromoteRights);
 
-warnComposer.command("warn", async (ctx) => {
+warnComposer.command("warn", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
@@ -119,7 +118,7 @@ warnComposer.command("warn", async (ctx) => {
   }
 });
 
-warnComposer.command("unwarn", async (ctx) => {
+warnComposer.command("unwarn", hasPromoteRights, async (ctx) => {
   try {
     if (!ctx.chatId) {
       await ctx.reply(ctx.t("moderation.errors.chat_required"), { parse_mode: "HTML" });
@@ -157,7 +156,7 @@ warnComposer.command("unwarn", async (ctx) => {
   }
 });
 
-warnComposer.callbackQuery(/^moderation:unwarn:(\d+)$/, async (ctx) => {
+warnComposer.callbackQuery(/^moderation:unwarn:(\d+)$/, hasPromoteRights, async (ctx) => {
   try {
     const chatId = ctx.chatId;
     const userId = getRegexNumberGroup(ctx.match);
